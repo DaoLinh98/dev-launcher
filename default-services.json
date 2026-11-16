@@ -1,0 +1,69 @@
+{
+  "settings": {
+    "openAtLogin": false,
+    "startAllOnLaunch": false,
+    "startMinimized": false,
+    "dependencyTimeoutSec": 90
+  },
+  "services": [
+    {
+      "id": "ticket-executor",
+      "name": "Ticket Executor",
+      "type": "process",
+      "cwd": "C:\\Users\\linh.dao\\Desktop\\Ticket-Executor\\ticket-executor",
+      "command": "npm run dev",
+      "port": 3000,
+      "autoStart": true
+    },
+    {
+      "id": "ngrok",
+      "name": "ngrok (3000)",
+      "type": "process",
+      "cwd": "C:\\Users\\linh.dao",
+      "command": "ngrok http 3000 --host-header=localhost:3000 --log stdout",
+      "dependsOn": ["ticket-executor"],
+      "ngrokApi": "http://127.0.0.1:4040/api/tunnels",
+      "autoStart": true
+    },
+    {
+      "id": "ai-english-coach",
+      "name": "AI English Coach",
+      "type": "process",
+      "cwd": "C:\\Users\\linh.dao\\ai-english-coach",
+      "command": "npm run dev",
+      "startAfter": ["ticket-executor"],
+      "autoStart": true
+    },
+    {
+      "id": "switchyard",
+      "name": "Switchyard",
+      "type": "process",
+      "cwd": "C:\\Users\\linh.dao\\Desktop\\switchyard",
+      "command": "npm run dev",
+      "startAfter": ["ticket-executor"],
+      "autoStart": true
+    },
+    {
+      "id": "ngan-notes",
+      "name": "Ngan Notes",
+      "type": "process",
+      "cwd": "C:\\Users\\linh.dao\\Desktop\\ngan-notes",
+      "command": "npm run dev",
+      "startAfter": ["ticket-executor"],
+      "autoStart": true
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama",
+      "type": "ollama",
+      "model": "translategemma:12b",
+      "host": "http://127.0.0.1:11434",
+      "autoStart": true
+    }
+  ],
+  "docker": {
+    "enabled": true,
+    "desktopPath": "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe",
+    "autoStartContainers": []
+  }
+}

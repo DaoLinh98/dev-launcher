@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:">
+  <title>Dev Launcher</title>
+  <link rel="stylesheet" href="../../node_modules/@xterm/xterm/css/xterm.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="aurora"><i></i><i></i><i></i></div>
+  <div class="grid"></div>
+
+  <div class="app">
+  <header class="topbar">
+    <div class="logo"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg></div>
+    <div class="brand"><b>Dev Launcher</b><span>powered by D-Agent</span></div>
+    <div class="stats">
+      <div class="chip"><b id="sReady">0/0</b> services <div class="bar"><em id="sBar"></em></div></div>
+      <div id="sDockChip" class="chip hidden"><b id="sDock">0</b> containers</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="tb-actions">
+      <button id="btnStartAll" class="fx fx-start"><span class="orb"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M5 2.8v10.4l8.4-5.2z"/></svg></span><span>Start all</span><span class="spark"></span></button>
+      <button id="btnStopAll" class="fx fx-stop"><span class="orb"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="3.5" y="3.5" width="9" height="9" rx="2"/></svg></span><span>Stop all</span></button>
+      <button id="btnSettings" class="fx fx-set"><span class="orb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></span><span>Settings</span></button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <div class="section-title">Services</div>
+      <div id="serviceList"></div>
+      <div class="section-title">
+        <span>Docker</span>
+        <button id="btnDockerRefresh" class="icon-btn" aria-label="Refresh"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.8-4.1M13.5 2.5v3h-3"/></svg></button>
+      </div>
+      <div id="dockerList"></div>
+    </aside>
+
+    <section class="detail">
+      <div id="detailHeader" class="detail-header"></div>
+      <div class="termwrap">
+        <div class="termbar"><div class="lights"><i></i><i></i><i></i></div><span id="termTitle"></span></div>
+        <div class="terminal-wrap"><div id="terminal"></div></div>
+      </div>
+    </section>
+  </main>
+  </div>
+
+  <div id="settings" class="overlay hidden">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Settings</h2>
+        <button id="btnCfgClose" class="icon-btn" aria-label="Close"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg></button>
+      </div>
+      <div class="toggles">
+        <label><input type="checkbox" data-key="openAtLogin"> Open Dev Launcher when I sign in to Windows</label>
+        <label><input type="checkbox" data-key="startAllOnLaunch"> Run "Start all" when Dev Launcher opens</label>
+        <label><input type="checkbox" data-key="startMinimized"> Start minimized to the system tray</label>
+      </div>
+      <div class="cfg-head">
+        <span>services.json</span>
+        <code id="cfgPath"></code>
+        <button id="btnOpenCfg" class="btn ghost small">Open in editor</button>
+      </div>
+      <textarea id="cfgText" spellcheck="false"></textarea>
+      <div id="cfgError" class="cfg-error"></div>
+      <details class="help">
+        <summary>Config reference</summary>
+<pre>services[]:
+  id           unique id (required)
+  name         display name
+  type         "process" (default) | "ollama"
+  cwd          working folder            (process)
+  command      shell command to run      (process)
+  port         port the service must own; checked before start,
+               passed as PORT env, used to detect "ready". If held by a
+               leftover process (also the ngrokApi port), it is killed
+               before start; set settings.autoKillPortConflicts=false
+               to get a confirmation dialog instead
+  dependsOn    ids that must be ready first; started automatically
+  startAfter   ids to wait for only if they are already starting
+  ngrokApi     ngrok local API url; shows the public URL
+  env          extra environment variables { "KEY": "value" }
+  autoStart    include in "Start all" (default true)
+  model, host  Ollama model to preload and server url (ollama)
+
+docker:
+  enabled              show the Docker section
+  desktopPath          Docker Desktop.exe, started when the engine is down
+  autoStartContainers  container names started by "Start all"
+
+Changes to a running service apply after Restart.</pre>
+      </details>
+      <div class="panel-actions">
+        <button id="btnCfgCancel" class="btn">Cancel</button>
+        <button id="btnCfgSave" class="btn primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <div id="tip"></div>
+
+  <script src="../../node_modules/@xterm/xterm/lib/xterm.js"></script>
+  <script src="../../node_modules/@xterm/addon-fit/lib/addon-fit.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>
